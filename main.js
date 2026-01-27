@@ -1,8 +1,9 @@
 // nomDeMonFichier.js
 console.log('Hello, world!');
 
-const a = 12;
-let b = 45;
+const operand = 12;
+const operand2 = 45;
 
-b += a ;
-console.log("resultat de a + b = " + b);
+let result = operand + operand2;
+
+console.log("resultat de" + operand + "+" + operand2 + "=" + result);
