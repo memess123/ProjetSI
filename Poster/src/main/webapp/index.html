@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Mes Posters de Films</title>
+    <style>
+        /* Un peu de CSS pour que ça ressemble à une grille de posters */
+        body { font-family: sans-serif; background-color: #f4f4f4; padding: 20px; }
+        h1 { text-align: center; color: #333; }
+        
+        #poster-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 15px;
+            transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-5px); }
+        .card h2 { font-size: 1.2rem; color: #007bff; margin-top: 0; }
+        .date { color: #888; font-size: 0.9rem; font-style: italic; }
+        .desc { color: #555; line-height: 1.4; }
+    </style>
+</head>
+<body>
+
+    <h1>🎬 Galerie des Posters (Star Wars)</h1>
+    
+    <div id="poster-container">
+        <p>Chargement des données...</p>
+    </div>
+
+    <script>
+        // L'URL de votre API (Chemin relatif pour éviter les soucis de port/domaine)
+        // Attention : Adaptez "movie1" si vous voulez voir un autre film
+        const API_URL = 'api/movies/movie1/posters';
+
+        // Fonction principale
+        async function chargerPosters() {
+            try {
+                const response = await fetch(API_URL);
+                
+                if (!response.ok) {
+                    throw new Error("Erreur HTTP: " + response.status);
+                }
+
+                const posters = await response.json();
+                afficherPosters(posters);
+
+            } catch (error) {
+                console.error("Erreur:", error);
+                document.getElementById('poster-container').innerHTML = 
+                    `<p style="color:red">Impossible de charger les posters : ${error.message}</p>`;
+            }
+        }
+
+        // Fonction pour créer le HTML
+        function afficherPosters(listePosters) {
+            const container = document.getElementById('poster-container');
+            container.innerHTML = ''; // On vide le message de chargement
+
+            if (listePosters.length === 0) {
+                container.innerHTML = '<p>Aucun poster trouvé.</p>';
+                return;
+            }
+
+            listePosters.forEach(poster => {
+                // Création d'une "carte" pour chaque poster
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                card.innerHTML = `
+                    <h2>${poster.titre}</h2>
+                    <p class="date">Publié le : ${poster.datePublication}</p>
+                    <p class="desc">${poster.description}</p>
+                    <button onclick="supprimerPoster('${poster.idPoster}')">Supprimer 🗑️</button>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        // Fonction bonus pour supprimer (appelle l'API DELETE)
+        async function supprimerPoster(id) {
+            if(!confirm("Voulez-vous vraiment supprimer ce poster ?")) return;
+
+            try {
+                await fetch(`api/posters/${id}`, { method: 'DELETE' });
+                alert("Poster supprimé !");
+                chargerPosters(); // On recharge la liste
+            } catch (e) {
+                alert("Erreur lors de la suppression");
+            }
+        }
+
+        // On lance le chargement au démarrage de la page
+        chargerPosters();
+    </script>
+</body>
+</html>
