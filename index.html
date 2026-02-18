@@ -1,20 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Site</title>
+    <title>ProjetSI - Accueil</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            background-color: white;
+            color: #333;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background-color: #333;
+            color: white;
+        }
+    </style>
 </head>
 <body>
-    <nav>
-        <ul>
-            <li><a href="calculatrice.html">Calculatrice</a></li>
-            <li><a href="Demineur.html">Demineur</a></li>
-            <li><a href="evite_rouge.html">Evite Rouge</a></li>
-            <li><a href="pageAxel.html">Page Axel</a></li>
-            <li><a href="pageRonan.html">Page Ronan</a></li>
-        </ul>
-    </nav>
-    <h1>Welcome to the Project Site!</h1>
+    <h1>ProjetSI</h1>
+    
+    <div class="buttons-container">
+        <button onclick="window.location.href='calculatrice.html'">Calculatrice</button>
+        <button onclick="window.location.href='Demineur.html'">Démineur</button>
+        <button onclick="window.location.href='evite_rouge.html'">Évite Rouge</button>
+        <button onclick="window.location.href='pageAxel.html'">Jeu Simon</button>
+        <button onclick="window.location.href='pageRonan.html'">Chasse aux Couleurs</button>
+    </div>
+
+    <script src="main.js"></script>
 </body>
 </html>
