@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jeu de Réflexe : Attrape-moi !</title>
+    <title>Jeu de Réflexe : Chasse aux Couleurs</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -14,7 +14,7 @@
             height: 100vh;
             margin: 0;
             background-color: #f0f2f5;
-            overflow: hidden; /* Empêche le scroll si le bouton sort un peu */
+            overflow: hidden;
         }
 
         #ui {
@@ -22,138 +22,184 @@
             top: 20px;
             text-align: center;
             background: white;
-            padding: 15px 30px;
+            padding: 20px 40px;
             border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             z-index: 10;
+            border-bottom: 8px solid #ccc; /* La couleur cible sera ici */
+            transition: border-color 0.3s;
         }
 
-        .stats {
-            font-size: 1.2rem;
-            margin: 5px;
-        }
+        .stats { font-size: 1.2rem; margin: 5px; font-weight: bold; }
 
-        #target {
+        .difficulty-selector { margin-bottom: 10px; }
+        .btn-diff {
+            padding: 5px 15px;
+            margin: 0 5px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #eee;
+        }
+        .btn-diff.active { background: #333; color: white; }
+
+        .game-button {
             position: absolute;
-            padding: 15px 25px;
-            font-size: 18px;
+            width: 80px;
+            height: 80px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
             font-weight: bold;
             color: white;
-            background-color: #ff4757;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
             transition: transform 0.1s;
-            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
         }
 
-        #target:active {
-            transform: scale(0.9);
-        }
+        .game-button:active { transform: scale(0.9); }
 
-        .hidden {
-            display: none;
-        }
-
-        #message {
-            font-size: 1.5rem;
-            color: #2f3542;
-            margin-top: 20px;
-        }
-
-        button#restart {
-            margin-top: 15px;
-            padding: 10px 20px;
-            cursor: pointer;
-            background: #2ed573;
-            border: none;
-            color: white;
-            border-radius: 5px;
-        }
+        .hidden { display: none; }
+        #message { font-size: 1.5rem; margin-top: 15px; }
+        #restart { padding: 10px 20px; cursor: pointer; background: #2ed573; border: none; color: white; border-radius: 5px; }
     </style>
 </head>
 <body>
 
     <div id="ui">
-        <div class="stats">Chrono : <span id="timer">0.0</span>s</div>
-        <div class="stats">Score : <span id="score">0</span> / 10</div>
+        <div class="difficulty-selector" id="difficulty-box">
+            <button class="btn-diff active" onclick="setDifficulty(2, this)">Facile</button>
+            <button class="btn-diff" onclick="setDifficulty(4, this)">Moyen</button>
+            <button class="btn-diff" onclick="setDifficulty(6, this)">Expert</button>
+        </div>
+        
+        <div class="stats">Cible : <span id="color-name">...</span></div>
+        <div class="stats">Chrono : <span id="timer">0.0</span>s | Score : <span id="score">0</span>/10</div>
+
         <div id="end-screen" class="hidden">
             <p id="message"></p>
-            <button id="restart" onclick="resetGame()">Rejouer</button>
+            <button id="restart" onclick="resetGame()">Recommencer</button>
         </div>
     </div>
 
-    <button id="target">Clique-moi !</button>
+    <div id="game-container"></div>
 
     <script>
-        const target = document.getElementById('target');
-        const scoreDisplay = document.getElementById('score');
-        const timerDisplay = document.getElementById('timer');
-        const endScreen = document.getElementById('end-screen');
-        const message = document.getElementById('message');
+        const colors = [
+            { name: 'Rouge', hex: '#ff4757' },
+            { name: 'Bleu', hex: '#1e90ff' },
+            { name: 'Vert', hex: '#2ed573' },
+            { name: 'Jaune', hex: '#ffa502' },
+            { name: 'Violet', hex: '#5352ed' },
+            { name: 'Orange', hex: '#ff7f50' }
+        ];
 
         let score = 0;
         let startTime;
         let timerInterval;
-        let gameActive = true;
+        let gameActive = false;
+        let targetColor = {};
+        let numButtons = 2;
 
-        function moveButton() {
-            // Calculer des positions aléatoires en restant dans la fenêtre
-            // On retire une marge de 100px pour que le bouton ne colle pas aux bords
-            const x = Math.random() * (window.innerWidth - 150);
-            const y = Math.random() * (window.innerHeight - 150);
+        const ui = document.getElementById('ui');
+        const gameContainer = document.getElementById('game-container');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const colorNameDisplay = document.getElementById('color-name');
+        const endScreen = document.getElementById('end-screen');
+        const message = document.getElementById('message');
+
+        function setDifficulty(n, btn) {
+            numButtons = n;
+            document.querySelectorAll('.btn-diff').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            resetGame();
+        }
+
+        function createButtons() {
+            gameContainer.innerHTML = '';
+            // On mélange les couleurs et on prend les N premières
+            const shuffled = [...colors].sort(() => 0.5 - Math.random()).slice(0, numButtons);
             
-            // Appliquer la nouvelle position (en évitant le bandeau du haut)
-            target.style.left = `${Math.max(10, x)}px`;
-            target.style.top = `${Math.max(100, y)}px`;
+            shuffled.forEach(color => {
+                const btn = document.createElement('button');
+                btn.className = 'game-button';
+                btn.style.backgroundColor = color.hex;
+                btn.onclick = () => handleButtonClick(color);
+                gameContainer.appendChild(btn);
+            });
+            return shuffled;
+        }
+
+        function moveButtons() {
+            const btns = document.querySelectorAll('.game-button');
+            btns.forEach(btn => {
+                const x = Math.random() * (window.innerWidth - 100);
+                const y = Math.random() * (window.innerHeight - 150);
+                btn.style.left = `${Math.max(20, x)}px`;
+                btn.style.top = `${Math.max(180, y)}px`;
+            });
+        }
+
+        function pickNewTarget(availableColors) {
+            targetColor = availableColors[Math.floor(Math.random() * availableColors.length)];
+            ui.style.borderColor = targetColor.hex;
+            colorNameDisplay.textContent = targetColor.name;
+            colorNameDisplay.style.color = targetColor.hex;
+        }
+
+        function handleButtonClick(clickedColor) {
+            if (score === 0 && !gameActive) {
+                gameActive = true;
+                startTime = Date.now();
+                timerInterval = setInterval(updateTimer, 100);
+                document.getElementById('difficulty-box').classList.add('hidden');
+            }
+
+            if (clickedColor.hex === targetColor.hex) {
+                score++;
+                scoreDisplay.textContent = score;
+                if (score >= 10) {
+                    endGame();
+                } else {
+                    const newColors = createButtons();
+                    pickNewTarget(newColors);
+                    moveButtons();
+                }
+            } else {
+                // Flash rouge sur l'UI si erreur
+                ui.style.backgroundColor = "#ffcccc";
+                setTimeout(() => ui.style.backgroundColor = "white", 200);
+            }
         }
 
         function updateTimer() {
-            const currentTime = Date.now();
-            const elapsed = ((currentTime - startTime) / 1000).toFixed(1);
+            const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
             timerDisplay.textContent = elapsed;
         }
 
         function endGame() {
             gameActive = false;
             clearInterval(timerInterval);
-            target.classList.add('hidden');
+            gameContainer.innerHTML = '';
             endScreen.classList.remove('hidden');
-            message.textContent = `Terminé ! Temps total : ${timerDisplay.textContent} secondes.`;
+            message.textContent = `Bravo ! Temps : ${timerDisplay.textContent}s`;
         }
 
         function resetGame() {
             score = 0;
-            scoreDisplay.textContent = score;
+            gameActive = false;
+            clearInterval(timerInterval);
+            scoreDisplay.textContent = "0";
             timerDisplay.textContent = "0.0";
             endScreen.classList.add('hidden');
-            target.classList.remove('hidden');
-            gameActive = true;
-            moveButton();
-            startTime = null; // Le timer repartira au premier clic
+            document.getElementById('difficulty-box').classList.remove('hidden');
+            const available = createButtons();
+            pickNewTarget(available);
+            moveButtons();
         }
 
-        target.addEventListener('click', () => {
-            if (!gameActive) return;
-
-            // Démarrer le chrono au premier clic
-            if (score === 0) {
-                startTime = Date.now();
-                timerInterval = setInterval(updateTimer, 100);
-            }
-
-            score++;
-            scoreDisplay.textContent = score;
-
-            if (score >= 10) {
-                endGame();
-            } else {
-                moveButton();
-            }
-        });
-
-        // Position initiale
-        moveButton();
+        // Initialisation
+        resetGame();
 
     </script>
 </body>
