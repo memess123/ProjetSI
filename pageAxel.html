@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu Simon - Git Training</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #2c3e50;
+            color: white;
+            margin-top: 50px;
+        }
+
+        h1 { margin-bottom: 10px; }
+        
+        #status {
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            height: 30px; /* Pour éviter le saut de page */
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            background-color: #333;
+            padding: 15px;
+            border-radius: 50%;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .btn {
+            width: 150px;
+            height: 150px;
+            border-radius: 20px;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        /* Les couleurs de base */
+        #green { background-color: #2ecc71; border-top-left-radius: 100%; }
+        #red { background-color: #e74c3c; border-top-right-radius: 100%; }
+        #yellow { background-color: #f1c40f; border-bottom-left-radius: 100%; }
+        #blue { background-color: #3498db; border-bottom-right-radius: 100%; }
+
+        /* L'effet "allumé" */
+        .btn.active {
+            opacity: 1;
+            transform: scale(0.95);
+            box-shadow: 0 0 20px white;
+        }
+
+        #start-btn {
+            margin-top: 30px;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            background-color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Jeu Simon</h1>
+    <div id="status">Appuie sur Start pour jouer</div>
+
+    <div class="game-board">
+        <div id="green" class="btn" onclick="joueurClick('green')"></div>
+        <div id="red" class="btn" onclick="joueurClick('red')"></div>
+        <div id="yellow" class="btn" onclick="joueurClick('yellow')"></div>
+        <div id="blue" class="btn" onclick="joueurClick('blue')"></div>
+    </div>
+
+    <button id="start-btn" onclick="demarrerJeu()">Start</button>
+
+    <script>
+        let sequenceJeu = [];
+        let sequenceJoueur = [];
+        let niveau = 0;
+        let enCoursDeJeu = false;
+        const couleurs = ['green', 'red', 'yellow', 'blue'];
+
+        function demarrerJeu() {
+            sequenceJeu = [];
+            sequenceJoueur = [];
+            niveau = 0;
+            enCoursDeJeu = true;
+            document.getElementById('status').innerText = "Regarde bien...";
+            prochainTour();
+        }
+
+        function prochainTour() {
+            sequenceJoueur = [];
+            niveau++;
+            document.getElementById('status').innerText = "Niveau " + niveau;
+            
+            // Choisir une couleur aléatoire
+            const randomColor = couleurs[Math.floor(Math.random() * 4)];
+            sequenceJeu.push(randomColor);
+
+            // Jouer la séquence (avec un petit délai)
+            jouerSequence();
+        }
+
+        function jouerSequence() {
+            enCoursDeJeu = false; // Bloquer les clics pendant la démo
+            let i = 0;
+            const interval = setInterval(() => {
+                activerBouton(sequenceJeu[i]);
+                i++;
+                if (i >= sequenceJeu.length) {
+                    clearInterval(interval);
+                    enCoursDeJeu = true; // Réactiver les clics
+                }
+            }, 800);
+        }
+
+        function activerBouton(couleur) {
+            const btn = document.getElementById(couleur);
+            btn.classList.add('active');
+            setTimeout(() => {
+                btn.classList.remove('active');
+            }, 400);
+        }
+
+        function joueurClick(couleur) {
+            if (!enCoursDeJeu) return;
+
+            activerBouton(couleur);
+            sequenceJoueur.push(couleur);
+
+            // Vérifier si le dernier clic est correct
+            const index = sequenceJoueur.length - 1;
+            if (sequenceJoueur[index] !== sequenceJeu[index]) {
+                document.getElementById('status').innerText = "Perdu ! Score : " + (niveau - 1);
+                enCoursDeJeu = false;
+                return;
+            }
+
+            // Si la séquence est complète et correcte
+            if (sequenceJoueur.length === sequenceJeu.length) {
+                enCoursDeJeu = false;
+                setTimeout(prochainTour, 1000);
+            }
+        }
+    </script>
+</body>
+</html>
