@@ -1,10 +1,10 @@
 # Projet : Anthologie de 5 Mini-Jeux
 
-Ce projet regroupe une collection de créations interactives développées avec passion. Chaque développeur a apporté sa touche unique pour offrir une expérience ludique variée.
+Ce projet regroupe une collection de créations interactives. 
 
 ---
 
-### 🛠️ L'Équipe et les Créations
+###  L'Équipe et les Créations
 
 | Développeur | Jeu / Application | Description |
 | :--- | :--- | :--- |
@@ -15,5 +15,3 @@ Ce projet regroupe une collection de créations interactives développées avec 
 | **Tom QUEMENEUR** |  Démineur | Le jeu de réflexion culte pour les amateurs de logique. |
 
 ---
-
-> **Note du projet :** Cette page a été conçue pour démontrer les compétences techniques de l'équipe tout en proposant un moment de divertissement simple et efficace.
