@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu de Réflexe : Attrape-moi !</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+            overflow: hidden; /* Empêche le scroll si le bouton sort un peu */
+        }
+
+        #ui {
+            position: absolute;
+            top: 20px;
+            text-align: center;
+            background: white;
+            padding: 15px 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .stats {
+            font-size: 1.2rem;
+            margin: 5px;
+        }
+
+        #target {
+            position: absolute;
+            padding: 15px 25px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background-color: #ff4757;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.4);
+        }
+
+        #target:active {
+            transform: scale(0.9);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #message {
+            font-size: 1.5rem;
+            color: #2f3542;
+            margin-top: 20px;
+        }
+
+        button#restart {
+            margin-top: 15px;
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #2ed573;
+            border: none;
+            color: white;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        <div class="stats">Chrono : <span id="timer">0.0</span>s</div>
+        <div class="stats">Score : <span id="score">0</span> / 10</div>
+        <div id="end-screen" class="hidden">
+            <p id="message"></p>
+            <button id="restart" onclick="resetGame()">Rejouer</button>
+        </div>
+    </div>
+
+    <button id="target">Clique-moi !</button>
+
+    <script>
+        const target = document.getElementById('target');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const endScreen = document.getElementById('end-screen');
+        const message = document.getElementById('message');
+
+        let score = 0;
+        let startTime;
+        let timerInterval;
+        let gameActive = true;
+
+        function moveButton() {
+            // Calculer des positions aléatoires en restant dans la fenêtre
+            // On retire une marge de 100px pour que le bouton ne colle pas aux bords
+            const x = Math.random() * (window.innerWidth - 150);
+            const y = Math.random() * (window.innerHeight - 150);
+            
+            // Appliquer la nouvelle position (en évitant le bandeau du haut)
+            target.style.left = `${Math.max(10, x)}px`;
+            target.style.top = `${Math.max(100, y)}px`;
+        }
+
+        function updateTimer() {
+            const currentTime = Date.now();
+            const elapsed = ((currentTime - startTime) / 1000).toFixed(1);
+            timerDisplay.textContent = elapsed;
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(timerInterval);
+            target.classList.add('hidden');
+            endScreen.classList.remove('hidden');
+            message.textContent = `Terminé ! Temps total : ${timerDisplay.textContent} secondes.`;
+        }
+
+        function resetGame() {
+            score = 0;
+            scoreDisplay.textContent = score;
+            timerDisplay.textContent = "0.0";
+            endScreen.classList.add('hidden');
+            target.classList.remove('hidden');
+            gameActive = true;
+            moveButton();
+            startTime = null; // Le timer repartira au premier clic
+        }
+
+        target.addEventListener('click', () => {
+            if (!gameActive) return;
+
+            // Démarrer le chrono au premier clic
+            if (score === 0) {
+                startTime = Date.now();
+                timerInterval = setInterval(updateTimer, 100);
+            }
+
+            score++;
+            scoreDisplay.textContent = score;
+
+            if (score >= 10) {
+                endGame();
+            } else {
+                moveButton();
+            }
+        });
+
+        // Position initiale
+        moveButton();
+
+    </script>
+</body>
+</html>

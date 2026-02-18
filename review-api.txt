@@ -1,0 +1,123 @@
+openapi: 3.1.0
+info:
+  title: review-api
+  description: API pour la gestion des évaluations des films.
+  version: 1.0.0
+
+servers:
+  - url: https://exemple-review.com/api
+    description: Serveur de prod
+
+paths:
+  /reviews:
+    get:
+      summary:  Liste tous les evaluations
+      description: Renvoie une liste de toutes les évaluations.
+      responses:
+        '200':
+          description: Une liste d'évaluations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Review'
+    post:
+      summary: Ajoute une nouvelle évaluation
+      description: Ajoute une nouvelle évaluation à la base de données
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        '201':
+          description: Évaluation créée avec succès
+        '400':
+          description: Requête invalide
+
+  /review/{id}:
+    get:
+      summary: Trouver une évaluation par son id
+      description: Renvoie une évaluation spécifique identifié par son id.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: L'ID du livre à trouver.
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Affichage d'une évaluation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
+        '404':
+          description: Évaluation non trouvée
+    put:
+      summary: Met à jour une évaluation
+      description: Met à jour le contenu d'une évaluation spécifique.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: L'ID de l'évaluation à mettre à jour.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        '200':
+          description: Évaluation mise à jour avec succès
+        '404':
+          description: Évaluation non trouvée
+        '400':
+          description: Requête invalide
+    delete:
+      summary: Supprime une évaluation
+      description: Supprime une évaluation spécifique de la base de données.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: L'id d'une évaluation à supprimer.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Évaluation supprimée avec succès
+        '404':
+          description: Évaluation non trouvée
+
+components:
+  schemas:
+    Review:
+      type: object
+      required:
+        - id
+        - note
+        - contenu
+      properties:
+        id:
+          type: integer
+          description: L'id du évaluation.
+        note:
+          type: integer
+          description: La note de l'évaluation.
+        contenu:
+          type: string
+          description: Le titre de l'évaluation.
+        auteur:
+          type: string
+          description: L'auteur de l'évaluation.
+        datePublication:
+          type: string
+          format: date
+          description: La date de publication du évaluation.
