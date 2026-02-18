@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Jeu 2D - Evite les blocs</title>
+<style>
+body {
+    margin: 0;
+    overflow: hidden;
+    background: #111;
+    color: white;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+canvas {
+    background: #222;
+    display: block;
+    margin: auto;
+}
+#score {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: 20px;
+}
+#gameOver {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 40px;
+    display: none;
+}
+</style>
+</head>
+<body>
+
+<div id="score">Score: 0</div>
+<div id="gameOver">GAME OVER<br>Appuie sur R pour rejouer</div>
+<canvas id="gameCanvas" width="800" height="500"></canvas>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+let player = {
+    x: 100,
+    y: 200,
+    size: 40,
+    speed: 5
+};
+
+let keys = {};
+let obstacles = [];
+let score = 0;
+let gameOver = false;
+
+document.addEventListener("keydown", e => {
+    keys[e.key] = true;
+    if (gameOver && e.key.toLowerCase() === "r") restart();
+});
+document.addEventListener("keyup", e => keys[e.key] = false);
+
+function spawnObstacle() {
+    let size = 30 + Math.random() * 30;
+    obstacles.push({
+        x: canvas.width,
+        y: Math.random() * (canvas.height - size),
+        size: size,
+        speed: 3 + Math.random() * 3
+    });
+}
+
+function update() {
+    if (gameOver) return;
+
+    // Mouvement joueur
+    if (keys["ArrowUp"]) player.y -= player.speed;
+    if (keys["ArrowDown"]) player.y += player.speed;
+    if (keys["ArrowLeft"]) player.x -= player.speed;
+    if (keys["ArrowRight"]) player.x += player.speed;
+
+    // Limites écran
+    player.x = Math.max(0, Math.min(canvas.width - player.size, player.x));
+    player.y = Math.max(0, Math.min(canvas.height - player.size, player.y));
+
+    // Obstacles
+    obstacles.forEach(o => {
+        o.x -= o.speed;
+
+        // Collision
+        if (
+            player.x < o.x + o.size &&
+            player.x + player.size > o.x &&
+            player.y < o.y + o.size &&
+            player.y + player.size > o.y
+        ) {
+            gameOver = true;
+            document.getElementById("gameOver").style.display = "block";
+        }
+    });
+
+    obstacles = obstacles.filter(o => o.x + o.size > 0);
+
+    if (Math.random() < 0.02) spawnObstacle();
+
+    score++;
+    document.getElementById("score").textContent = "Score: " + score;
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Joueur
+    ctx.fillStyle = "deepskyblue";
+    ctx.fillRect(player.x, player.y, player.size, player.size);
+
+    // Obstacles
+    ctx.fillStyle = "red";
+    obstacles.forEach(o => {
+        ctx.fillRect(o.x, o.y, o.size, o.size);
+    });
+}
+
+function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+function restart() {
+    player.x = 100;
+    player.y = 200;
+    obstacles = [];
+    score = 0;
+    gameOver = false;
+    document.getElementById("gameOver").style.display = "none";
+}
+
+loop();
+</script>
+
+</body>
+</html>
